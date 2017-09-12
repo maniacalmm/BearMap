@@ -34,14 +34,14 @@ public class QuadTree {
     }
 
     private void initialization(int num) {
-        for (int i = 0; i < num; i++) {
+        for (int i = 1; i <= num; i++) {
             String file = baseFourConvert(i);
             System.out.println(file);
-            //add(root, file, 0);
+            add(root, file, 0);
         }
 
     }
-
+/*
     private void BFSinital(int num) {
         Queue<Node> queue = new LinkedList<>();
         queue.add(root);
@@ -53,18 +53,19 @@ public class QuadTree {
             }
         }
     }
-
+*/
     private void add(Node toAdd, String fileName, int count) {
         //System.out.println("filename: " + fileName + " count: " + count);
         if (fileName.length()-1 == count) {
             int section = fileName.charAt(fileName.length() - 1) - '1';
             double[] posInfo = posCal(toAdd, section);
-            toAdd.Quad[fileName.charAt(0) - '1'] =
+            toAdd.Quad[section] =
                     new Node(fileName, posInfo[0], posInfo[1], posInfo[2], posInfo[3]);
+            //System.out.println("fileName: " + fileName + " added into " + toAdd.toString() + " section: " + section);
         } else {
             int s = fileName.charAt(count) - '1';
             //System.out.println("s: " + s + " --> " + toAdd.Quad[s].toString());
-            add(toAdd.Quad[s], fileName, ++count);
+            add(toAdd.Quad[s], fileName, count + 1);
             //add(toAdd.Quad[s], fileName, count++);
 
         }
@@ -120,10 +121,13 @@ public class QuadTree {
         Queue<Node> Q = new LinkedList<>();
         Q.add(root);
         while(!Q.isEmpty()) {
+            //System.out.println("Q size: " + Q.size());
             Node n = Q.remove();
             for (Node node : n.Quad) {
-                System.out.print(node.toString() + " ");
-                Q.add(node);
+                if (node != null) {
+                    System.out.print(node.toString() + " ");
+                    Q.add(node);
+                }
             }
             System.out.println();
         }
@@ -131,14 +135,13 @@ public class QuadTree {
 
 
     public static void main(String[] args) {
-        /*
-        int quantity = 4;
-        QuadTree QT = new QuadTree(16);
-        QT.BFS();
-        */
 
-        for (int i = 1; i <= 100; i++)
-            System.out.println(baseFourConvert(i));
+        int quantity = 4;
+        QuadTree QT = new QuadTree(20);
+        System.out.println("BFS starting");
+        QT.BFS();
+
+
 
     }
 
