@@ -74,7 +74,7 @@ public class MapServer {
      * The result of rastering must be a map containing all of the
      * fields listed in the comments for getMapRaster in Rasterer.java.
      **/
-    private static final String[] REQUIRED_RASTER_RESULT_PARAMS = {"render_grid", "raster_ul_lon",
+   private static final String[] REQUIRED_RASTER_RESULT_PARAMS = {"render_grid", "raster_ul_lon",
         "raster_ul_lat", "raster_lr_lon", "raster_lr_lat", "depth", "query_success"};
 
     private static Rasterer rasterer;
@@ -93,6 +93,7 @@ public class MapServer {
         rasterer = new Rasterer(IMG_ROOT);
     }
 
+    /***********************************************************************/
     public static void main(String[] args) {
         initialize();
         staticFileLocation("/page");
@@ -109,8 +110,10 @@ public class MapServer {
         get("/raster", (req, res) -> {
             HashMap<String, Double> params =
                     getRequestParams(req, REQUIRED_RASTER_REQUEST_PARAMS);
+
             /* The png image is written to the ByteArrayOutputStream */
             ByteArrayOutputStream os = new ByteArrayOutputStream();
+
             /* getMapRaster() does almost all the work for this API call */
             Map<String, Object> rasteredImgParams = rasterer.getMapRaster(params);
 
@@ -165,6 +168,7 @@ public class MapServer {
             return true;
         });
     }
+    /***********************************************************************/
 
     /**
      * Validate & return a parameter map of the required request parameters.
@@ -172,6 +176,8 @@ public class MapServer {
      * @param req HTTP Request
      * @param requiredParams TestParams to validate
      * @return A populated map of input parameter to it's numerical value.
+     *
+     * This is the API that communicates between FRONTEND and BACKEND.
      */
     private static HashMap<String, Double> getRequestParams(
             spark.Request req, String[] requiredParams) {
