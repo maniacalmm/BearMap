@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class provides all code necessary to take a query box and produce
@@ -80,12 +77,21 @@ public class Rasterer {
         double w = params.get("w");
         double stepLon, stepLat;
 
-        if (ullon < MapServer.ROOT_ULLON || ullat > MapServer.ROOT_ULLAT
-                || lrlat < MapServer.ROOT_LRLAT || lrlon > MapServer.ROOT_LRLON
-                || lrlat >= ullat || lrlon <= ullon) {
-            System.out.println("query Success is false");
+        if (ullon > MapServer.ROOT_LRLON
+                || ullat < MapServer.ROOT_LRLAT
+                || lrlat > MapServer.ROOT_ULLAT
+                || lrlon < MapServer.ROOT_ULLON) {
+            /*
+            if (ullon < MapServer.ROOT_ULLON) System.out.println("error 1");
+            if (ullat > MapServer.ROOT_ULLAT) System.out.println("error 2");
+            if (lrlat < MapServer.ROOT_LRLAT) System.out.println("error 3");
+            if (lrlon > MapServer.ROOT_LRLON) System.out.println("error 4");
+            */
+                //System.out.println("query Success is false");
                 querySuccess = false;
         } else {
+                querySuccess = true;
+        }
 
             List<Double> lon = new ArrayList<>();
             List<Double> lat = new ArrayList<>();
@@ -94,17 +100,17 @@ public class Rasterer {
             stepLon = QT.searchFileName(ullon, ullat, LonDPP).lonStep(); //determine the scaled LonDPP
             stepLat = QT.searchFileName(ullon, ullat, LonDPP).latiStep(); //determine the scaled LonDPP
 
-            System.out.println("ullon: " + ullon + " lrlon: " + lrlon + " step: " + stepLon);
-            System.out.println("ullat: " + ullat + " lrlat: " + lrlat + " step: " + stepLat);
+            //System.out.println("ullon: " + ullon + " lrlon: " + lrlon + " step: " + stepLon);
+            //System.out.println("ullat: " + ullat + " lrlat: " + lrlat + " step: " + stepLat);
 
-            for (double i = ullon; i < lrlon; i += stepLon) lon.add(i);
-            for (double j = ullat; j > lrlat; j = j - stepLat) lat.add(j);
+            for (double i = ullon; i < lrlon + stepLon; i += stepLon) lon.add(i);
+            for (double j = ullat; j > lrlat - stepLat; j = j - stepLat) lat.add(j);
             //lon.add(lrlon); // get the searching grid longitude
             //lat.add(lrlat); // get the searching grid latitude
             // actually not necessary, since the gap might be too small such that it creates replica image
 
-            System.out.println("lon : " + lon);
-            System.out.println("lat size: " + lat);
+            //System.out.println("lon : " + lon);
+            //System.out.println("lat size: " + lat);
 
             renderedGrid = gridRendering(lon, lat, LonDPP);
 
@@ -116,13 +122,13 @@ public class Rasterer {
             raster_lr_lat = LRNode.LRLAT;
             raster_lr_lon = LRNode.LRLON;
 
-            System.out.println("LonDPP needed: " + LonDPP);
-            System.out.println("LonDPP returned: " + ULNode.LonDPPcal());
+            //System.out.println("LonDPP needed: " + LonDPP);
+            //System.out.println("LonDPP returned: " + ULNode.LonDPPcal());
 
             // depth calculation
             depth = ULNode.fileName.length();
-            querySuccess = true;
-        }
+            //querySuccess = true;
+        //}
 
         results.put("render_grid", renderedGrid);
         results.put("raster_ul_lon", raster_ul_lon);
@@ -133,7 +139,12 @@ public class Rasterer {
         results.put("query_success", querySuccess);
 
         showGrid();
-
+        System.out.println("raster_ul_lon: " + raster_ul_lon
+                            + " raster_ul_lat: " + raster_ul_lat
+                            + " raster_lr_lon: " + raster_lr_lon
+                            + " raster_lr_lat: " + raster_lr_lat
+                            + " depth: " + depth
+                            + " query_success " + querySuccess);
 
         return results;
     }
@@ -146,12 +157,68 @@ public class Rasterer {
        }
     }
 
+    /**
+     *
+     * @param x
+     * @param y
+     * @param LonDPP
+     * @return
+     *
+     * if we construct the raster image with only x, and y, then,
+     * it is almost guaranteed that if the query box outside the root a bit, repetition
+     * is gonna occur, which is like 11.png 11.png, by introduced a hashset to keep track
+     * of all the raster file, to keep the potential replicate out, which is effective for
+     * column replicates, and we made a second pass for the potential row replicate
+     */
     private String[][] gridRendering(List<Double> x, List<Double> y, double LonDPP) {
-        String[][] result = new String[y.size()][x.size()];
 
+        List<List<String>> rasteredNode = new ArrayList<>();
+        Set<String> checkingName = new HashSet<>();
+        List<List<String>> cleanName = new ArrayList<>();
+
+        // first pass
         for (int i = 0; i < y.size(); i++) {
+            rasteredNode.add(new ArrayList<>());
             for (int j = 0; j < x.size(); j++) {
-                result[i][j] = imgRoot + QT.searchFileName(x.get(j), y.get(i), LonDPP).fileName + ".png";
+                QuadTree.Node tmp = QT.searchFileName(x.get(j), y.get(i), LonDPP);
+                if (!checkingName.contains(tmp.fileName)) {
+                        checkingName.add(tmp.fileName);
+                        String wholeThing = imgRoot + QT.searchFileName(x.get(j), y.get(i), LonDPP).fileName + ".png";
+                        rasteredNode.get(i).add(wholeThing);
+                }
+            }
+        }
+
+        // second pass
+        // eliminate row replicate
+        int row = 0;
+        for (int k = 0; k < rasteredNode.size(); k++) {
+            if (rasteredNode.get(k).size() != 0) {
+                cleanName.add(new ArrayList<>());
+
+                for (int l = 0; l < rasteredNode.get(0).size(); l++) {
+                    cleanName.get(row).add(rasteredNode.get(k).get(l));
+                }
+                row++;
+            }
+
+        }
+
+
+        /*
+        for (List<String> l : cleanName) {
+            for (String s : l) {
+                System.out.print(s + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("--------------");
+        */
+        //System.out.println("row: " + rasteredNode.size() + " columns: " + rasteredNode.get(0).size());
+        String[][] result = new String[cleanName.size()][cleanName.get(0).size()];
+        for (int m = 0; m < cleanName.size(); m++) {
+            for (int n = 0; n < cleanName.get(0).size(); n++) {
+                result[m][n] = cleanName.get(m).get(n);
             }
         }
 
