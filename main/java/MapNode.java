@@ -1,19 +1,30 @@
+/**
+ * MapNode is the Node we use to identify and spot on the map
+ *
+ * it has one longitude, one latitude, and probably a name
+ *
+ */
 public class MapNode {
-    String id;
+    Long id;
     double lon;
     double lat;
     String name = "no where";
 
-    public MapNode(String id, double lon, double lat) {
+    public MapNode(Long id, double lon, double lat) {
         this.id = id;
         this.lon = lon;
         this.lat = lat;
     }
 
-    public MapNode(String id, double lon, double lat, String name) {
+    // this is actually kinda useless
+    public MapNode(Long id, double lon, double lat, String name) {
         this.id = id;
         this.lon = lon;
         this.lat = lat;
+        this.name = name;
+    }
+
+    void addName(String name) {
         this.name = name;
     }
 
@@ -21,6 +32,12 @@ public class MapNode {
         double lonErr = o.lon - this.lon;
         double latErr = o.lat - this.lat;
         return Math.sqrt(lonErr * lonErr + latErr * latErr);
+    }
+
+    double distanceToSquare(MapNode o) {
+        double lonErr = o.lon - this.lon;
+        double latErr = o.lat - this.lat;
+        return lonErr * lonErr + latErr * latErr;
     }
 
     public String toString() {

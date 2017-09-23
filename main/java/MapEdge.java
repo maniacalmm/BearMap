@@ -11,6 +11,7 @@ public class MapEdge {
        length = x.distanceTo(y);
     }
 
+    // compare to the node constructor, this one is more useful
     public MapEdge(MapNode x, MapNode y, String name) {
        this.x = x;
        this.y = y;
@@ -18,12 +19,20 @@ public class MapEdge {
        length = x.distanceTo(y);
     }
 
+    long getXid() {
+        return x.id;
+    }
+
+    long getYid() {
+        return y.id;
+    }
+
     public double length() {
         return length;
     }
 
     public String toString() {
-        return x.id + " to " + y.id + " : " + length;
+        return x.id + " to " + y.id + " " + " len: " + length;
     }
 
 
