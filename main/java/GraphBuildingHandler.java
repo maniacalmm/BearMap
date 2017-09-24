@@ -66,9 +66,9 @@ public class GraphBuildingHandler extends DefaultHandler {
         if (qName.equals("node")) {
             /* We encountered a new <node...> tag. */
             activeState = "node";
-            System.out.println("Node id: " + attributes.getValue("id"));
-            System.out.println("Node lon: " + attributes.getValue("lon"));
-            System.out.println("Node lat: " + attributes.getValue("lat"));
+            //System.out.println("Node id: " + attributes.getValue("id"));
+            //System.out.println("Node lon: " + attributes.getValue("lon"));
+            //System.out.println("Node lat: " + attributes.getValue("lat"));
 
             /* TODO Use the above information to save a "node" to somewhere. */
             /* Hint: A graph-like structure would be nice. */
@@ -91,7 +91,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             // the above two line has been taken care of at endElements
         } else if (activeState.equals("way") && qName.equals("nd")) {
             /* While looking at a way, we found a <nd...> tag. */
-            System.out.println("Id of a node in this way: " + attributes.getValue("ref"));
+            //System.out.println("Id of a node in this way: " + attributes.getValue("ref"));
             cachedWayNode.add(Long.parseLong(attributes.getValue("ref")));
 
             /* TODO Use the above id to make "possible" connections between the nodes in this way */
@@ -107,15 +107,15 @@ public class GraphBuildingHandler extends DefaultHandler {
 
             if (k.equals("maxspeed")) {
                 // maxspeed is not an concern here, the osm data is somewhat inaccurate anyway
-                System.out.println("Max Speed: " + v);
+                //System.out.println("Max Speed: " + v);
             } else if (k.equals("highway")) {
-                System.out.println("Highway type: " + v);
+                //System.out.println("Highway type: " + v);
                 validRoad = ALLOWED_HIGHWAY_TYPES.contains(v);
             } else if (k.equals("name")) {
                 wayName = GraphDB.cleanString(v);
-                System.out.println("Way Name: " + v);
+                //System.out.println("Way Name: " + v);
             }
-            System.out.println("Tag with k=" + k + ", v=" + v + ".");
+            //System.out.println("Tag with k=" + k + ", v=" + v + ".");
         } else if (activeState.equals("node") && qName.equals("tag") && attributes.getValue("k")
                 .equals("name")) {
             /* While looking at a node, we found a <tag...> with k="name". */
@@ -123,7 +123,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             /* Hint: Since we found this <tag...> INSIDE a node, we should probably remember which
             node this tag belongs to. Remember XML is parsed top-to-bottom, so probably it's the
             last node that you looked at (check the first if-case). */
-            System.out.println("Node's name: " + attributes.getValue("v"));
+            //System.out.println("Node's name: " + attributes.getValue("v"));
             g.addingNodeName(nodeInProcess, GraphDB.cleanString(attributes.getValue("v")));
         }
     }
@@ -158,7 +158,7 @@ public class GraphBuildingHandler extends DefaultHandler {
                     g.addEdge(node2, mapEdge);
                 }
             }
-            System.out.println("Finishing a way...");
+            //System.out.println("Finishing a way...");
 //            Upon finish a way, should set the validRoad flag back to been false, so that the next
 //            way must set it again
             validRoad = false;
