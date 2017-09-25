@@ -55,7 +55,7 @@ public class MapGraph {
         MapNode target = null;
         for (MapNodePack mnp : AdjacentList.values()) {
             double distmp = mnp.mapNode.distanceTo(o);
-            if (distmp < distance) {
+            if (distmp < distance && !mnp.emptyEdge()) {
                 distance = distmp;
                 target = mnp.mapNode;
             }

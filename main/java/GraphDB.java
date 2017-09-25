@@ -5,9 +5,7 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -20,7 +18,19 @@ import java.util.List;
  */
 public class GraphDB {
 
+    private class NameID {
+        String name;
+        long id;
+
+        public NameID(String name, long id) {
+            this.name = name;
+            this.id = id;
+        }
+    }
+
+    static MapTries MT = new MapTries();
     MapGraph mapGraph;
+    static Map<String, NameID> autoCompletion = new HashMap<>(1000);
 
     /** Your instance variables for storing the graph. You should consider
      * creating helper classes, e.g. Node, Edge, etc. */
@@ -42,7 +52,28 @@ public class GraphDB {
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }
-        clean();
+        //clean();
+        setAutoCompletion();
+    }
+
+    /**
+     * autoCompletion initi
+     */
+
+    private void setAutoCompletion() {
+        for (MapNodePack mnp : mapGraph.AdjacentList.values()) {
+            String name = mnp.mapNode.name;
+            System.out.println(name);
+            long id = mnp.mapNode.id;
+            if (name.length() != 0)
+                autoCompletion.put(cleanString(name), new NameID(name, id));
+            // clean name as key, full name and id as value
+        }
+
+        for (String cleanName : autoCompletion.keySet()) {
+            MT.put(cleanName);
+        }
+        System.out.println("clean name size :" + autoCompletion.size());
     }
 
     /**
@@ -129,4 +160,17 @@ public class GraphDB {
         mapGraph.addEdge(id, edge);
     }
 
+    // get word list from autoCompletion with prefix
+    static List<String> getPrefix(String prefix) {
+        System.out.println("input prefix: " + prefix);
+        List<String> result = new ArrayList<>();
+
+        List<String> tmp = MT.keyWithPrefix(cleanString(prefix));
+        System.out.println("tries: " + tmp.size());
+        for (String s : tmp) {
+            result.add(autoCompletion.get(s).name);
+        }
+
+        return result;
+    }
 }

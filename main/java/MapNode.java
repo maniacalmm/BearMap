@@ -8,7 +8,7 @@ public class MapNode {
     Long id;
     double lon;
     double lat;
-    String name = "no where";
+    String name = "";
 
     public MapNode(Long id, double lon, double lat) {
         this.id = id;
